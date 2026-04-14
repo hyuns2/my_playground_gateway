@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -15,9 +16,15 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 public class SecurityConfig {
     public final static String[] excludedPaths = new String[]{
             "/auth/**",
-            "/chat/*.html"
+            "/chat/*.html",
+            "/chat/stomp"
     };
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Bean
+    public PathPatternParser pathPatternParser() {
+        return new PathPatternParser();
+    }
 
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity serverHttpSecurity) {

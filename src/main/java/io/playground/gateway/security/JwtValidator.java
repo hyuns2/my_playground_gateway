@@ -18,6 +18,8 @@ public class JwtValidator {
     private String grantType;
     @Value("${jwt.token_type_claim}")
     private String tokenTypeClaim;
+    @Value("${jwt.authorities_claim}")
+    private String authoritiesClaim;
     private static final String TOKEN_TYPE = "access";
 
     public void validate(String tokenWithGrantType) {
@@ -26,6 +28,10 @@ public class JwtValidator {
 
         if (!claims.get(tokenTypeClaim).equals(TOKEN_TYPE))
             throw new IllegalArgumentException("Invalid token type");
+
+        String authoritiesString = (String) claims.get(authoritiesClaim);
+        if (authoritiesString.isBlank())
+            throw new IllegalArgumentException("No authorities in token");
     }
 
     private String resolveToken(String token) {
