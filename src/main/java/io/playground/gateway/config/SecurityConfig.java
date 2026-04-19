@@ -1,33 +1,30 @@
 package io.playground.gateway.config;
 
 import io.playground.gateway.security.JwtAuthenticationFilter;
-import lombok.RequiredArgsConstructor;
+import io.playground.gateway.security.JwtValidator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.web.util.pattern.PathPatternParser;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableWebFluxSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
-    public final static String[] excludedPaths = new String[]{
-            "/auth/**",
-            "/chat/*.html",
-            "/chat/stomp"
-    };
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
-
     @Bean
-    public PathPatternParser pathPatternParser() {
-        return new PathPatternParser();
+    public JwtValidator jwtValidator() {
+        return new JwtValidator();
     }
 
     @Bean
-    public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity serverHttpSecurity) {
+    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtValidator jwtValidator) {
+        return new JwtAuthenticationFilter(jwtValidator);
+    }
+
+    @Bean
+    public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity serverHttpSecurity,
+                                                      JwtAuthenticationFilter jwtAuthenticationFilter) {
         serverHttpSecurity
                 .cors(ServerHttpSecurity.CorsSpec::disable)
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
@@ -36,7 +33,6 @@ public class SecurityConfig {
 
         return serverHttpSecurity
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers(excludedPaths).permitAll()
                         .anyExchange().permitAll()
                 )
                 .addFilterAt(jwtAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION)
